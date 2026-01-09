@@ -9,7 +9,7 @@ export default function Home() {
       <header className="flex-shrink-0 px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm safe-area-top">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Helm
+            Kirana
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Your AI assistant

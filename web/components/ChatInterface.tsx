@@ -42,12 +42,10 @@ function getMcpDisplayName(server: string): string {
   if (server.toLowerCase().includes("playwright")) {
     return "Internet Access";
   }
-  // Direct mappings
+  // Direct mappings for MCP servers
   const mappings: Record<string, string> = {
-    "google-calendar": "Google Calendar",
-    "gmail-personal": "Gmail (Personal)",
     "gmail": "Gmail",
-    "slack": "Slack",
+    "calendar": "Google Calendar",
   };
   return mappings[server] || server;
 }
@@ -186,8 +184,7 @@ ${content.trim()}`;
     } else if (isReminder) {
       messageToSend = `[SET REMINDER - Schedule a notification for me.
 
-Parse my request and schedule it using this command:
-/home/ubuntu/helm/scripts/notifications/remind.sh "MESSAGE" --at "TIME"
+Parse my request and use the remind.sh script as documented in CLAUDE.md.
 
 Time formats the 'at' command accepts:
 - "3:00 PM" or "3pm" - today at that time

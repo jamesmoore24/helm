@@ -29,7 +29,7 @@ export function abortRequest(requestId: string): void {
   }
 }
 
-// Path to the helm repository root (parent of /web)
+// Path to the repository root (parent of /web)
 const REPO_ROOT = path.resolve(process.cwd(), "..");
 
 // Event types for streaming
@@ -68,13 +68,15 @@ export type StreamEvent = ToolCallEvent | TextEvent | DoneEvent | ErrorEvent | I
 // Map tool names to friendly names and icons
 function getToolDisplay(toolName: string, input?: Record<string, unknown>): { friendlyName: string; icon: string } {
   // MCP tools
-  if (toolName.startsWith("mcp__google-calendar__")) {
-    const action = toolName.replace("mcp__google-calendar__", "");
-    return { friendlyName: `Calendar: ${action.replace(/-/g, " ")}`, icon: "📅" };
+  if (toolName.startsWith("mcp__calendar__")) {
+    const action = toolName.replace("mcp__calendar__", "");
+    const account = input?.account ? ` (${input.account})` : "";
+    return { friendlyName: `Calendar: ${action.replace(/-/g, " ")}${account}`, icon: "📅" };
   }
   if (toolName.startsWith("mcp__gmail__") || toolName.startsWith("mcp__gmail-personal__")) {
     const action = toolName.replace(/mcp__gmail(-personal)?__/, "");
-    return { friendlyName: `Email: ${action.replace(/_/g, " ")}`, icon: "📧" };
+    const account = input?.account ? ` (${input.account})` : "";
+    return { friendlyName: `Email: ${action.replace(/_/g, " ")}${account}`, icon: "📧" };
   }
   if (toolName.startsWith("mcp__slack__")) {
     const action = toolName.replace("mcp__slack__", "");

@@ -31,7 +31,7 @@ const QUICK_ACTIONS = [
     prompt: `Quick calendar check! Please:
 
 1. Get the current time
-2. Check my Google Calendar for today's events
+2. Check my Google Calendar for today's events (all connected accounts)
 3. Show me what's happening today in a clean format:
    - Events that already happened (brief)
    - What's coming up next
@@ -71,14 +71,13 @@ Keep it warm and supportive. Be concise.`,
 
 DON'T lecture me or show statistics. Just be supportive and suggest ONE thing I could do right now to feel better.
 
-Things that usually help me:
-- Watch comfort anime (Little Witch Academia, Frieren, or other favorites)
-- Draw something new (doesn't have to be good)
-- Clean or organize my space
-- Call or text a friend (I'm an extrovert, connection helps)
+Check my context files for activities that help me relax, or suggest general calming activities:
 - Go outside for a short walk
 - Do some light stretching
 - Take a hot shower
+- Tidy up my space
+- Listen to calming music
+- Connect with a friend
 
 Pick ONE suggestion based on the time of day and what might be most accessible right now. Keep it short and gentle.`,
     icon: "🌊",
@@ -89,14 +88,13 @@ Pick ONE suggestion based on the time of day and what might be most accessible r
     prompt: `It's time to start winding down for sleep. Help me transition to rest mode.
 
 Please:
-1. Check my medications file (context/medications.md or current-state.md) for evening medications
-2. Read my sleep-protocol.md for the evening routine
+1. Check my context files for any evening medications or routines
+2. Read any sleep protocol or evening routine documentation
 
 Then give me a gentle checklist:
-- Evening medication reminders (Gabapentin timing, Flonase, etc.)
+- Any evening medication reminders
 - Screen/light recommendations for the next 2 hours
-- One relaxing activity suggestion (drawing, anime, gentle music)
-- Hot shower timing if I haven't taken one
+- One relaxing activity suggestion
 - Any calendar items for tomorrow I should know about
 
 Keep it calming and simple. This is wind-down time, not planning time.`,
