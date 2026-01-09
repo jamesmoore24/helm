@@ -1,6 +1,7 @@
-# Logs
-logs
+# Logs (but not context/logs which is our data)
+/logs
 *.log
+!context/logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
