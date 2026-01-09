@@ -172,86 +172,293 @@ A personal AI assistant powered by Claude Code with Gmail, Calendar, and browser
 
 ## Phase 5: Google Cloud Setup
 
+### Create Project & Enable APIs
+
 - [ ] **5.1** Go to [Google Cloud Console](https://console.cloud.google.com/)
 
-- [ ] **5.2** Create a new project named "Helm Assistant"
+- [ ] **5.2** Create a new project
+  - Click the project dropdown (top left, next to "Google Cloud")
+  - Click "New Project"
+  - Name it "Helm Assistant" (or similar)
+  - Click "Create"
+  - Wait for creation, then select the new project from the dropdown
 
 - [ ] **5.3** Enable Gmail API
-  - Go to APIs & Services → Library → Search "Gmail API" → Enable
+  - Go to **APIs & Services → Library** (left sidebar)
+  - Search for "Gmail API"
+  - Click on it → Click **Enable**
 
 - [ ] **5.4** Enable Google Calendar API
-  - Go to APIs & Services → Library → Search "Google Calendar API" → Enable
+  - Go to **APIs & Services → Library**
+  - Search for "Google Calendar API"
+  - Click on it → Click **Enable**
 
-- [ ] **5.5** Configure OAuth consent screen
-  - Go to APIs & Services → OAuth consent screen
-  - Choose External, fill in app name
-  - Add your email as test user
-  - Add scopes: `gmail.readonly`, `gmail.send`, `gmail.modify`, `calendar`, `calendar.events`
+### Configure OAuth Consent Screen
 
-- [ ] **5.6** Create OAuth credentials
-  - Go to APIs & Services → Credentials
-  - Create Credentials → OAuth client ID → Desktop application
-  - Download the JSON file
+- [ ] **5.5** Go to **APIs & Services → OAuth consent screen** (left sidebar)
 
-- [ ] **5.7** Upload credentials to VM
-  ```bash
-  # From your local machine:
-  scp ~/Downloads/client_secret_*.json ubuntu@YOUR_SERVER_IP:~/credentials.json
+- [ ] **5.6** Select User Type
+  - Choose **External** (allows any Google account)
+  - Click "Create"
+
+- [ ] **5.7** Fill in App Information (Step 1 of 4)
+  - **App name:** "Helm Assistant"
+  - **User support email:** Select your email
+  - **Developer contact information:** Enter your email
+  - Click "Save and Continue"
+
+- [ ] **5.8** Add Scopes (Step 2 of 4)
+  - Click "Add or Remove Scopes"
+  - In the filter box, search and check these scopes:
+    - `https://www.googleapis.com/auth/gmail.readonly`
+    - `https://www.googleapis.com/auth/gmail.send`
+    - `https://www.googleapis.com/auth/gmail.modify`
+    - `https://www.googleapis.com/auth/calendar`
+  - Click "Update" at bottom
+  - Click "Save and Continue"
+
+- [ ] **5.9** Test Users (Step 3 of 4)
+  - Skip this for now (we'll publish the app instead)
+  - Click "Save and Continue"
+
+- [ ] **5.10** Review Summary (Step 4 of 4)
+  - Review your settings
+  - Click "Back to Dashboard"
+
+- [ ] **5.11** **CRITICAL: Publish the App**
+  - On the OAuth consent screen dashboard, find "Publishing status"
+  - It will say "Testing" - click **"Publish App"**
+  - Confirm by clicking "Confirm"
+
+  **Why this matters:**
+  - In "Testing" mode, tokens expire after **7 days**
+  - In "Production" mode, refresh tokens **don't expire**
+  - Your app will show an "unverified" warning to users, but that's fine for personal use
+  - Users click "Advanced" → "Go to [App Name] (unsafe)" to proceed
+
+### Create OAuth Credentials
+
+- [ ] **5.12** Go to **APIs & Services → Credentials** (left sidebar)
+
+- [ ] **5.13** Click **"+ Create Credentials"** → **"OAuth client ID"**
+
+- [ ] **5.14** Configure the OAuth client
+  - **Application type:** Select **"Desktop app"** (NOT "Web application")
+  - **Name:** "Helm CLI" (or any name)
+  - Click "Create"
+
+- [ ] **5.15** Download credentials
+  - A popup shows your Client ID and Client Secret
+  - Click **"Download JSON"**
+  - Save the file (it will be named like `client_secret_XXXXX.json`)
+
+- [ ] **5.16** Note your credentials (you'll need these later):
+  - **Client ID:** `____________________.apps.googleusercontent.com`
+  - **Client Secret:** `GOCSPX-____________________`
+
+- [ ] **5.17** Verify the downloaded JSON looks like this:
+  ```json
+  {
+    "installed": {
+      "client_id": "123456789-xxxxx.apps.googleusercontent.com",
+      "project_id": "helm-assistant-123456",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token",
+      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      "client_secret": "GOCSPX-xxxxxxxxxxxxxxxxxxxx",
+      "redirect_uris": ["http://localhost"]
+    }
+  }
   ```
+
+  **Important:** The top-level key must be `"installed"` (for Desktop apps).
+  If it says `"web"`, you created a Web application - delete it and create a Desktop app instead.
 
 ---
 
 ## Phase 6: MCP Server Setup
 
-### Google Calendar MCP
+### Install Gmail MCP Server
 
-- [ ] **6.1** Create config directory
+- [ ] **6.1** Clone and build the Gmail MCP server
   ```bash
-  mkdir -p ~/.google-calendar-mcp
+  mkdir -p ~/mcp-servers && cd ~/mcp-servers
+  git clone https://github.com/anthropics/gmail-mcp.git
+  cd gmail-mcp && npm install && npm run build
   ```
 
-- [ ] **6.2** Copy credentials
+### Create MCP Configuration
+
+- [ ] **6.2** Create credentials directory
   ```bash
-  cp ~/credentials.json ~/.google-calendar-mcp/gcp-oauth.keys.json
+  mkdir -p ~/.gmail-mcp/accounts
   ```
 
-- [ ] **6.3** Authenticate Calendar MCP
+- [ ] **6.3** Save your OAuth credentials (paste the JSON from Phase 5.7)
   ```bash
-  npx @cocal/google-calendar-mcp
-  # Follow browser prompts, add account with nickname (e.g., "personal")
+  nano ~/.gmail-mcp/gcp-oauth.keys.json
   ```
 
-### Gmail MCP
-
-- [ ] **6.4** Create Gmail MCP config directory
+- [ ] **6.4** Create `.mcp.json` in your helm directory
   ```bash
-  mkdir -p ~/.gmail-mcp
+  cat > ~/helm/.mcp.json << 'EOF'
+  {
+    "mcpServers": {
+      "gmail": {
+        "command": "node",
+        "args": ["/home/ubuntu/mcp-servers/gmail-mcp/build/index.js"],
+        "env": {
+          "CREDENTIALS_PATH": "/home/ubuntu/.gmail-mcp/gcp-oauth.keys.json",
+          "ACCOUNTS_PATH": "/home/ubuntu/.gmail-mcp/accounts"
+        }
+      },
+      "calendar": {
+        "command": "npx",
+        "args": ["@cocal/google-calendar-mcp"],
+        "env": {
+          "GOOGLE_OAUTH_CREDENTIALS": "/home/ubuntu/.gmail-mcp/gcp-oauth.keys.json"
+        }
+      }
+    }
+  }
+  EOF
   ```
 
-- [ ] **6.5** Copy credentials for Gmail
+- [ ] **6.5** Create symlinks for Gmail MCP (it looks in working directory)
   ```bash
-  cp ~/credentials.json ~/.gmail-mcp/gcp-oauth.keys.json
+  ln -sf ~/.gmail-mcp/gcp-oauth.keys.json ~/helm/credentials.json
+  ln -sfn ~/.gmail-mcp/accounts ~/helm/accounts
   ```
 
-- [ ] **6.6** Authenticate Gmail MCP
-  ```bash
-  npx @anthropic/gmail-mcp auth
+### Manual OAuth Authentication (Headless Server)
+
+On a headless server, you can't use browser-based OAuth directly. Instead, use manual token exchange:
+
+- [ ] **6.6** Generate auth URLs for each account
+
+  **The OAuth URL pattern:**
+  ```
+  https://accounts.google.com/o/oauth2/auth?
+    client_id=YOUR_CLIENT_ID&
+    redirect_uri=http://localhost&
+    response_type=code&
+    scope=SCOPES&
+    access_type=offline&
+    prompt=consent
   ```
 
-- [ ] **6.7** (Optional) Add second Gmail account
-  ```bash
-  mkdir -p ~/.gmail-mcp-work
-  cp ~/credentials.json ~/.gmail-mcp-work/gcp-oauth.keys.json
-  GMAIL_MCP_CONFIG_DIR=~/.gmail-mcp-work npx @anthropic/gmail-mcp auth
+  **For Gmail (replace YOUR_CLIENT_ID):**
   ```
+  https://accounts.google.com/o/oauth2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=http://localhost&response_type=code&scope=https://www.googleapis.com/auth/gmail.readonly%20https://www.googleapis.com/auth/gmail.send%20https://www.googleapis.com/auth/gmail.modify&access_type=offline&prompt=consent
+  ```
+
+  **For Calendar (replace YOUR_CLIENT_ID):**
+  ```
+  https://accounts.google.com/o/oauth2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=http://localhost&response_type=code&scope=https://www.googleapis.com/auth/calendar&access_type=offline&prompt=consent
+  ```
+
+- [ ] **6.7** For each email account you want to authenticate:
+  1. Open the auth URL in your local browser
+  2. Sign in with the Google account
+  3. Click through the "unverified app" warning (Advanced → Continue)
+  4. Grant permissions
+  5. You'll be redirected to: `http://localhost/?code=4/0XXXXX&scope=...`
+  6. Copy the `code=` value (everything between `code=` and `&scope`)
+
+- [ ] **6.8** Exchange auth codes for tokens
+
+  For each account, run this curl command (replace CODE, CLIENT_ID, CLIENT_SECRET):
+  ```bash
+  curl -s -X POST https://oauth2.googleapis.com/token \
+    -d "code=YOUR_AUTH_CODE" \
+    -d "client_id=YOUR_CLIENT_ID" \
+    -d "client_secret=YOUR_CLIENT_SECRET" \
+    -d "redirect_uri=http://localhost" \
+    -d "grant_type=authorization_code"
+  ```
+
+  This returns JSON with `access_token` and `refresh_token`.
+
+### Save Gmail Tokens
+
+- [ ] **6.9** For each Gmail account, create a token file:
+  ```bash
+  mkdir -p ~/.gmail-mcp/accounts/user@gmail.com
+  cat > ~/.gmail-mcp/accounts/user@gmail.com/token.json << 'EOF'
+  {
+    "type": "authorized_user",
+    "client_id": "YOUR_CLIENT_ID",
+    "client_secret": "YOUR_CLIENT_SECRET",
+    "refresh_token": "REFRESH_TOKEN_FROM_CURL"
+  }
+  EOF
+  ```
+
+- [ ] **6.10** Create the Gmail accounts registry:
+  ```bash
+  cat > ~/.gmail-mcp/accounts/config.json << 'EOF'
+  {
+    "accounts": {
+      "user@gmail.com": {
+        "email": "user@gmail.com",
+        "addedAt": "2026-01-01T00:00:00.000Z"
+      }
+    },
+    "defaultAccount": "user@gmail.com"
+  }
+  EOF
+  ```
+
+### Save Calendar Tokens
+
+- [ ] **6.11** Create calendar tokens directory:
+  ```bash
+  mkdir -p ~/.config/google-calendar-mcp
+  ```
+
+- [ ] **6.12** Create calendar tokens file:
+  ```bash
+  cat > ~/.config/google-calendar-mcp/tokens.json << 'EOF'
+  {
+    "personal": {
+      "access_token": "ACCESS_TOKEN_FROM_CURL",
+      "refresh_token": "REFRESH_TOKEN_FROM_CURL",
+      "scope": "https://www.googleapis.com/auth/calendar",
+      "token_type": "Bearer",
+      "expiry_date": 1767998205526
+    }
+  }
+  EOF
+  ```
+  Note: The key (e.g., "personal") is the account nickname used in calendar commands.
 
 ### Verify MCP Connections
 
-- [ ] **6.8** Test MCP in Claude Code
+- [ ] **6.13** Restart Claude Code to load MCP servers
   ```bash
   cd ~/helm && claude
-  # Try: "List my calendars" and "Show my recent emails"
   ```
+
+- [ ] **6.14** Test Gmail MCP
+  ```
+  > List my Gmail accounts
+  > Search my emails for "test"
+  ```
+
+- [ ] **6.15** Test Calendar MCP
+  ```
+  > List my calendars
+  > What events do I have today?
+  ```
+
+### Adding More Accounts Later
+
+To add additional Gmail/Calendar accounts:
+1. Generate auth URL with appropriate scopes
+2. Open in browser, complete auth, get the code
+3. Exchange code for tokens via curl
+4. Add token file to appropriate directory
+5. Update config.json (Gmail) or tokens.json (Calendar)
 
 ---
 
