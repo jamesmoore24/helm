@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "gmail": {
+      "command": "node",
+      "args": ["/home/ubuntu/mcp-servers/gmail-mcp/build/index.js"],
+      "env": {
+        "CREDENTIALS_PATH": "/home/ubuntu/.gmail-mcp/gcp-oauth.keys.json",
+        "ACCOUNTS_PATH": "/home/ubuntu/.gmail-mcp/accounts"
+      }
+    },
+    "calendar": {
+      "command": "npx",
+      "args": ["@cocal/google-calendar-mcp"],
+      "env": {
+        "GOOGLE_OAUTH_CREDENTIALS": "/home/ubuntu/.gmail-mcp/gcp-oauth.keys.json"
+      }
+    }
+  }
+}
