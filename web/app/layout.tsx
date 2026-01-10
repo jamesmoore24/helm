@@ -33,8 +33,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="antialiased">
+    <html lang="en" className="h-full bg-white dark:bg-gray-900">
+      <body className="antialiased flex flex-col min-h-screen min-h-dvh bg-white dark:bg-gray-900">
         {children}
       </body>
     </html>

@@ -4,7 +4,7 @@ import { ChatInterface } from "@/components/ChatInterface";
 
 export default function Home() {
   return (
-    <main className="min-h-[100dvh] h-[100dvh] bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 flex flex-col overflow-hidden">
+    <main className="flex-1 min-h-0 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 flex flex-col overflow-hidden">
       {/* Header - full width with centered content */}
       <header className="flex-shrink-0 px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm safe-area-top">
         <div className="max-w-4xl mx-auto">
